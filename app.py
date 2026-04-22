@@ -5,8 +5,6 @@ import json
 
 app = Flask(__name__)
 
-GEMINI_API_KEY = "AIzaSyCF5-zto1fki-2_FXqY1T_kpcYKFJ-fgwM"
-
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({"status": "running"})
@@ -16,11 +14,13 @@ def answer():
     data = request.json
     query = data.get('query', '')
     
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+    
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
     
     payload = json.dumps({
         "contents": [{
-            "parts": [{"text": f"Answer this question with only the answer, no explanation: {query}"}]
+            "parts": [{"text": f"Answer this question with only the answer, no explanation, no extra text: {query}"}]
         }]
     }).encode()
     
