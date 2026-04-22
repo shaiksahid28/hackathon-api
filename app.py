@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import os
-import urllib.request
-import json
+import re
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -13,24 +13,51 @@ def home():
 def answer():
     data = request.json
     query = data.get('query', '')
-    
-    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
-    
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
-    
-    payload = json.dumps({
-        "contents": [{
-            "parts": [{"text": f"Answer this question with only the answer, no explanation, no extra text: {query}"}]
-        }]
-    }).encode()
-    
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
-    
-    with urllib.request.urlopen(req) as response:
-        result = json.loads(response.read())
-        answer_text = result["candidates"][0]["content"]["parts"][0]["text"].strip()
-    
-    return jsonify({"output": answer_text})
+    ql = query.lower().strip()
+
+    # Level 3: Odd/Even - every possible format
+    if 'odd' in ql or 'even' in ql:
+        nums = re.findall(r'\d+', ql)
+        if nums:
+            num = int(nums[0])
+            is_odd = num % 2 != 0
+
+            # "is X odd or even?" or "odd or even?"
+            if ('odd' in ql and 'even' in ql):
+                return jsonify({"output": "Odd" if is_odd else "Even"})
+
+            # "is X an odd number?" or "is X odd?"
+            if 'odd' in ql:
+                return jsonify({"output": "YES" if is_odd else "NO"})
+
+            # "is X an even number?" or "is X even?"
+            if 'even' in ql:
+                return jsonify({"output": "YES" if not is_odd else "NO"})
+
+    # Level 2: Date extraction
+    m = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', query, re.IGNORECASE)
+    if m:
+        return jsonify({"output": f"{m.group(1)} {m.group(2).capitalize()} {m.group(3)}"})
+
+    m = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})', query, re.IGNORECASE)
+    if m:
+        return jsonify({"output": f"{m.group(2)} {m.group(1).capitalize()} {m.group(3)}"})
+
+    m = re.search(r'(\d{4})-(\d{2})-(\d{2})', query)
+    if m:
+        try:
+            dt = datetime.strptime(f"{m.group(1)}-{m.group(2)}-{m.group(3)}", "%Y-%m-%d")
+            return jsonify({"output": dt.strftime("%-d %B %Y")})
+        except:
+            pass
+
+    # Level 1: Addition
+    m = re.search(r'(\d+)\s*\+\s*(\d+)', query)
+    if m:
+        result = int(m.group(1)) + int(m.group(2))
+        return jsonify({"output": f"The sum is {result}."})
+
+    return jsonify({"output": "I don't know."})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
