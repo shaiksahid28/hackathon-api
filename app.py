@@ -15,48 +15,50 @@ def answer():
     query = data.get('query', '')
     ql = query.lower().strip()
 
-    # Level 4: Sum even/odd numbers from list
-    # "Numbers: 2,5,8,11. Sum even numbers."
-    m = re.search(r'numbers?[:\s]+([\d,\s]+)', ql)
-    if m:
-        nums = [int(x.strip()) for x in re.findall(r'\d+', m.group(1))]
-        
-        if 'sum even' in ql:
+    # Level 4: Operations on list of numbers
+    # Extract ALL numbers from query
+    all_nums = [int(x) for x in re.findall(r'\d+', ql)]
+    
+    if len(all_nums) >= 2 and any(w in ql for w in ['sum', 'count', 'average', 'mean', 'max', 'min', 'largest', 'smallest', 'sort', 'even', 'odd', 'numbers']):
+        nums = all_nums
+
+        if 'sum even' in ql or ('sum' in ql and 'even' in ql):
             result = sum(n for n in nums if n % 2 == 0)
             return jsonify({"output": str(result)})
-        
-        if 'sum odd' in ql:
+
+        if 'sum odd' in ql or ('sum' in ql and 'odd' in ql):
             result = sum(n for n in nums if n % 2 != 0)
             return jsonify({"output": str(result)})
-        
-        if 'count even' in ql:
+
+        if 'count even' in ql or ('count' in ql and 'even' in ql):
             result = len([n for n in nums if n % 2 == 0])
             return jsonify({"output": str(result)})
-        
-        if 'count odd' in ql:
+
+        if 'count odd' in ql or ('count' in ql and 'odd' in ql):
             result = len([n for n in nums if n % 2 != 0])
             return jsonify({"output": str(result)})
-        
+
         if 'largest' in ql or 'maximum' in ql or 'max' in ql:
             return jsonify({"output": str(max(nums))})
-        
+
         if 'smallest' in ql or 'minimum' in ql or 'min' in ql:
             return jsonify({"output": str(min(nums))})
-        
-        if 'sum' in ql:
-            return jsonify({"output": str(sum(nums))})
-        
+
         if 'average' in ql or 'mean' in ql:
             result = sum(nums) / len(nums)
             return jsonify({"output": str(int(result) if result == int(result) else round(result, 2))})
-        
-        if 'sort' in ql and 'desc' in ql:
+
+        if 'sort' in ql and ('desc' in ql or 'reverse' in ql):
             return jsonify({"output": ', '.join(map(str, sorted(nums, reverse=True)))})
-        
+
         if 'sort' in ql:
             return jsonify({"output": ', '.join(map(str, sorted(nums)))})
 
-    # Level 3: Odd/Even check
+        if 'sum' in ql:
+            result = sum(nums)
+            return jsonify({"output": str(result)})
+
+    # Level 3: Odd/Even single number
     if 'odd' in ql or 'even' in ql:
         nums = re.findall(r'\d+', ql)
         if nums:
