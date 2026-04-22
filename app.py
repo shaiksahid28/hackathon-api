@@ -14,36 +14,37 @@ def answer():
     data = request.json
     query = data.get('query', '')
     ql = query.lower().strip()
-    all_nums = [int(x) for x in re.findall(r'\d+', query)]
 
-    # Level 4: Number operations
-    if len(all_nums) >= 2:
-        if 'sum' in ql and 'even' in ql:
-            return jsonify({"output": str(sum(n for n in all_nums if n % 2 == 0))})
-        if 'sum' in ql and 'odd' in ql:
-            return jsonify({"output": str(sum(n for n in all_nums if n % 2 != 0))})
-        if ('count' in ql or 'how many' in ql) and 'even' in ql:
-            return jsonify({"output": str(len([n for n in all_nums if n % 2 == 0]))})
-        if ('count' in ql or 'how many' in ql) and 'odd' in ql:
-            return jsonify({"output": str(len([n for n in all_nums if n % 2 != 0]))})
-        if 'largest' in ql or 'maximum' in ql or 'max' in ql or 'greatest' in ql:
-            return jsonify({"output": str(max(all_nums))})
-        if 'smallest' in ql or 'minimum' in ql or 'min' in ql:
-            return jsonify({"output": str(min(all_nums))})
-        if 'average' in ql or 'mean' in ql:
-            result = sum(all_nums) / len(all_nums)
-            return jsonify({"output": str(int(result) if result == int(result) else round(result, 2))})
-        if 'sort' in ql and ('desc' in ql or 'reverse' in ql or 'descending' in ql):
-            return jsonify({"output": ' '.join(map(str, sorted(all_nums, reverse=True)))})
-        if 'sort' in ql or 'ascending' in ql:
-            return jsonify({"output": ' '.join(map(str, sorted(all_nums)))})
-        if 'multiply' in ql or 'product' in ql:
-            result = 1
-            for n in all_nums:
-                result *= n
-            return jsonify({"output": str(result)})
-        if 'sum' in ql or 'total' in ql or 'add' in ql:
-            return jsonify({"output": str(sum(all_nums))})
+    # Level 4: Extract numbers from "Numbers: X,Y,Z" pattern
+    num_match = re.search(r'numbers?[:\s]+([\d\s,;|]+)', ql)
+    if num_match:
+        nums = [int(x) for x in re.findall(r'\d+', num_match.group(1))]
+        if nums:
+            if 'sum' in ql and 'even' in ql:
+                return jsonify({"output": str(sum(n for n in nums if n % 2 == 0))})
+            if 'sum' in ql and 'odd' in ql:
+                return jsonify({"output": str(sum(n for n in nums if n % 2 != 0))})
+            if ('count' in ql or 'how many' in ql) and 'even' in ql:
+                return jsonify({"output": str(len([n for n in nums if n % 2 == 0]))})
+            if ('count' in ql or 'how many' in ql) and 'odd' in ql:
+                return jsonify({"output": str(len([n for n in nums if n % 2 != 0]))})
+            if 'largest' in ql or 'maximum' in ql or 'max' in ql or 'greatest' in ql:
+                return jsonify({"output": str(max(nums))})
+            if 'smallest' in ql or 'minimum' in ql or 'min' in ql:
+                return jsonify({"output": str(min(nums))})
+            if 'average' in ql or 'mean' in ql:
+                result = sum(nums) / len(nums)
+                return jsonify({"output": str(int(result) if result == int(result) else round(result, 2))})
+            if 'sort' in ql and ('desc' in ql or 'reverse' in ql or 'descending' in ql):
+                return jsonify({"output": ' '.join(map(str, sorted(nums, reverse=True)))})
+            if 'sort' in ql or 'ascending' in ql:
+                return jsonify({"output": ' '.join(map(str, sorted(nums)))})
+            if 'multiply' in ql or 'product' in ql:
+                result = 1
+                for n in nums: result *= n
+                return jsonify({"output": str(result)})
+            if 'sum' in ql or 'total' in ql or 'add' in ql:
+                return jsonify({"output": str(sum(nums))})
 
     # Level 3: Odd/Even
     if 'odd' in ql or 'even' in ql:
