@@ -15,7 +15,7 @@ def answer():
     query = data.get('query', '')
     ql = query.lower().strip()
 
-    # Extract all numbers from anywhere in query
+    # Extract all numbers from query
     all_nums = [int(x) for x in re.findall(r'\d+', query)]
 
     # Level 4: Number list operations
@@ -24,23 +24,28 @@ def answer():
             return jsonify({"output": str(sum(n for n in all_nums if n % 2 == 0))})
         if 'sum' in ql and 'odd' in ql:
             return jsonify({"output": str(sum(n for n in all_nums if n % 2 != 0))})
-        if 'count' in ql and 'even' in ql:
+        if ('count' in ql or 'how many' in ql) and 'even' in ql:
             return jsonify({"output": str(len([n for n in all_nums if n % 2 == 0]))})
-        if 'count' in ql and 'odd' in ql:
+        if ('count' in ql or 'how many' in ql) and 'odd' in ql:
             return jsonify({"output": str(len([n for n in all_nums if n % 2 != 0]))})
-        if 'largest' in ql or 'maximum' in ql or 'max' in ql:
+        if 'largest' in ql or 'maximum' in ql or 'max' in ql or 'greatest' in ql:
             return jsonify({"output": str(max(all_nums))})
         if 'smallest' in ql or 'minimum' in ql or 'min' in ql:
             return jsonify({"output": str(min(all_nums))})
         if 'average' in ql or 'mean' in ql:
             result = sum(all_nums) / len(all_nums)
             return jsonify({"output": str(int(result) if result == int(result) else round(result, 2))})
-        if 'sort' in ql and ('desc' in ql or 'reverse' in ql):
+        if 'sort' in ql and ('desc' in ql or 'reverse' in ql or 'descending' in ql):
             return jsonify({"output": ' '.join(map(str, sorted(all_nums, reverse=True)))})
-        if 'sort' in ql:
+        if 'sort' in ql or 'ascending' in ql:
             return jsonify({"output": ' '.join(map(str, sorted(all_nums)))})
-        if 'sum' in ql:
+        if 'sum' in ql or 'total' in ql or 'add' in ql:
             return jsonify({"output": str(sum(all_nums))})
+        if 'multiply' in ql or 'product' in ql:
+            result = 1
+            for n in all_nums:
+                result *= n
+            return jsonify({"output": str(result)})
 
     # Level 3: Odd/Even single number
     if 'odd' in ql or 'even' in ql:
@@ -62,6 +67,14 @@ def answer():
             num = int(nums[0])
             is_prime = num > 1 and all(num % i != 0 for i in range(2, int(num**0.5)+1))
             return jsonify({"output": "YES" if is_prime else "NO"})
+
+    # Level 3: Greater/Less
+    m = re.search(r'is\s+(-?\d+)\s+greater\s+than\s+(-?\d+)', ql)
+    if m:
+        return jsonify({"output": "YES" if int(m.group(1)) > int(m.group(2)) else "NO"})
+    m = re.search(r'is\s+(-?\d+)\s+less\s+than\s+(-?\d+)', ql)
+    if m:
+        return jsonify({"output": "YES" if int(m.group(1)) < int(m.group(2)) else "NO"})
 
     # Level 2: Date extraction
     m = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', query, re.IGNORECASE)
