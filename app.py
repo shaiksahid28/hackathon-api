@@ -15,24 +15,59 @@ def answer():
     query = data.get('query', '')
     ql = query.lower().strip()
 
-    # Level 3: Odd/Even - every possible format
+    # Level 3: Odd/Even - ALL possible variations
     if 'odd' in ql or 'even' in ql:
         nums = re.findall(r'\d+', ql)
         if nums:
             num = int(nums[0])
             is_odd = num % 2 != 0
 
-            # "is X odd or even?" or "odd or even?"
-            if ('odd' in ql and 'even' in ql):
+            # "odd or even" type question
+            if 'odd' in ql and 'even' in ql:
                 return jsonify({"output": "Odd" if is_odd else "Even"})
 
-            # "is X an odd number?" or "is X odd?"
+            # "is X odd?" / "is X an odd number?"
             if 'odd' in ql:
                 return jsonify({"output": "YES" if is_odd else "NO"})
 
-            # "is X an even number?" or "is X even?"
+            # "is X even?" / "is X an even number?"
             if 'even' in ql:
                 return jsonify({"output": "YES" if not is_odd else "NO"})
+
+    # Level 3: Prime number check
+    if 'prime' in ql:
+        nums = re.findall(r'\d+', ql)
+        if nums:
+            num = int(nums[0])
+            if num < 2:
+                is_prime = False
+            else:
+                is_prime = all(num % i != 0 for i in range(2, int(num**0.5)+1))
+            return jsonify({"output": "YES" if is_prime else "NO"})
+
+    # Level 3: Positive/Negative check
+    if 'positive' in ql or 'negative' in ql:
+        nums = re.findall(r'-?\d+', ql)
+        if nums:
+            num = int(nums[0])
+            if 'positive' in ql:
+                return jsonify({"output": "YES" if num > 0 else "NO"})
+            if 'negative' in ql:
+                return jsonify({"output": "YES" if num < 0 else "NO"})
+
+    # Level 3: Greater/Less than
+    m = re.search(r'is\s+(-?\d+)\s+greater\s+than\s+(-?\d+)', ql)
+    if m:
+        return jsonify({"output": "YES" if int(m.group(1)) > int(m.group(2)) else "NO"})
+
+    m = re.search(r'is\s+(-?\d+)\s+less\s+than\s+(-?\d+)', ql)
+    if m:
+        return jsonify({"output": "YES" if int(m.group(1)) < int(m.group(2)) else "NO"})
+
+    # Level 3: Equal check
+    m = re.search(r'is\s+(-?\d+)\s+equal\s+to\s+(-?\d+)', ql)
+    if m:
+        return jsonify({"output": "YES" if int(m.group(1)) == int(m.group(2)) else "NO"})
 
     # Level 2: Date extraction
     m = re.search(r'(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})', query, re.IGNORECASE)
